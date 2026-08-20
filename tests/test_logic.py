@@ -46,6 +46,17 @@ class _Filter:
         return lambda f: f
 
 
+class MessageChain:
+    def __init__(self, chain=None):
+        self.chain = chain or []
+
+    def __iter__(self):
+        return iter(self.chain)
+
+    def __getitem__(self, i):
+        return self.chain[i]
+
+
 class AstrMessageEvent:
     pass
 
@@ -85,7 +96,7 @@ def register(name, author, desc, version):
 
 _module("astrbot")
 _module("astrbot.api")
-_module("astrbot.api.event", filter=_Filter(), AstrMessageEvent=AstrMessageEvent)
+_module("astrbot.api.event", filter=_Filter(), AstrMessageEvent=AstrMessageEvent, MessageChain=MessageChain)
 _module("astrbot.api.star", Context=Context, Star=Star, register=register)
 _module("astrbot.api.message_components", Plain=Plain, Image=Image)
 
@@ -215,6 +226,7 @@ async def main():
     rs = await collect(p7.on_message(ev))
     await check("转述回执", len(rs) == 1 and "已为你转述" in rs[0])
     await check("转述目标", len(ctx7.sent) == 1 and ctx7.sent[0][0] == "qq:GroupMessage:123")
+    await check("转述链类型", isinstance(ctx7.sent[0][1], MessageChain))
     chain = ctx7.sent[0][1]
     await check("转述头部", getattr(chain[0], "text", "").startswith("【匿名倾诉】") and "匿名者-001" in getattr(chain[0], "text", ""))
     await check("转述正文", getattr(chain[1], "text", "") == "最近好累啊……")
@@ -279,6 +291,15 @@ async def main():
     await collect(p16.on_message(FakeEvent("开启匿名模式", sender="uFail")))
     rs = await collect(p16.on_message(FakeEvent("内容", sender="uFail")))
     await check("发送失败提示", len(rs) == 1 and "转述失败" in rs[0])
+
+    # 17. 不支持的消息类型只提示一次
+    p17, ctx17 = make_plugin(TARGET)
+    await collect(p17.on_message(FakeEvent("开启匿名模式", sender="uVoice")))
+    voice1 = FakeEvent("", sender="uVoice", chain=[types.SimpleNamespace(type="record")])
+    voice2 = FakeEvent("", sender="uVoice", chain=[types.SimpleNamespace(type="record")])
+    rs1 = await collect(p17.on_message(voice1))
+    rs2 = await collect(p17.on_message(voice2))
+    await check("不支持消息只提示一次", len(rs1) == 1 and "暂不支持" in rs1[0] and rs2 == [])
 
     print(f"\n结果: {PASSED} 通过, {FAILED} 失败")
     sys.exit(1 if FAILED else 0)

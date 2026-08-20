@@ -19,13 +19,13 @@ import re
 import time
 from dataclasses import MISSING, dataclass, fields
 
-from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.event import AstrMessageEvent, MessageChain, filter
 from astrbot.api.message_components import Image, Plain
 from astrbot.api.star import Context, Star, register
 
 logger = logging.getLogger("astrbot.plugin.anon_relay")
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 
 @dataclass
@@ -215,7 +215,13 @@ class AnonRelay(Star):
         chain = self._get_message_chain(event)
         parts = [c for c in chain if isinstance(c, (Plain, Image))]
         if not parts:
-            return "暂不支持转述这类消息（仅支持文字和图片）。", True
+            # 语音/表情/视频等无法转述的消息：只提示一次，避免刷屏
+            if session.get("warned_unsupported"):
+                return None, True
+            session["warned_unsupported"] = True
+            session["last_active"] = time.time()
+            await self._save_sessions()
+            return "暂不支持转述这类消息（仅支持文字和图片），本会话内不再重复提示。", True
         groups = self._target_groups()
         if not groups:
             return "⚠️ 目标群聊未配置，无法转述，请联系管理员。", True
@@ -290,6 +296,8 @@ class AnonRelay(Star):
 
     async def _send_group(self, event, group_id, chain):
         """通过 Context.send_message 主动发送到指定群聊（v4 官方通道）。"""
+        if not isinstance(chain, MessageChain):
+            chain = MessageChain(chain=chain)
         session_str = f"{event.get_platform_id()}:GroupMessage:{group_id}"
         try:
             ok = await self.context.send_message(session_str, chain)
