@@ -89,8 +89,22 @@ QQ / OneBot 填群号数字即可；Telegram 填群聊 chat id（可能为负数
 **旧版本 AstrBot 能用吗？**
 本插件基于 AstrBot v4 Star API（`>= 4.16`），v3 及早期 v4 不支持。
 
+## 文件结构
+
+| 文件 | 用途 |
+| --- | --- |
+| `main.py` | 插件主体：`AnonRelay(Star)` 类，实现私聊拦截、关键词开启/关闭会话、匿名转述、长文分段、KV 持久化、主动发送到群聊 |
+| `metadata.yaml` | 插件元数据：名称、显示名、简介、版本、作者、仓库地址、兼容的 AstrBot 版本范围；AstrBot 加载插件时读取 |
+| `_conf_schema.json` | 插件设置面板 schema：WebUI「插件配置」的表单由此文件自动生成，每个键对应一个可编辑的配置项 |
+| `README.md` | 本文档：安装、配置面板、使用流程、隐私说明与 FAQ |
+| `LICENSE` | MIT 开源许可证，声明使用与分发条款 |
+| `.gitignore` | Git 忽略规则：排除 `__pycache__` 等无关文件，保持仓库整洁 |
+| `tests/test_logic.py` | 离线逻辑测试：用桩模块模拟 AstrBot API，无需安装 AstrBot 即可验证核心逻辑（`python -X utf8 tests/test_logic.py`） |
+
+其中，AstrBot 真正运行只依赖三个文件：`main.py`、`metadata.yaml`、`_conf_schema.json`；
+其余为开发与分发所需。
+
 ## 开发
 
-- `main.py`：插件主体（`AnonRelay(Star)`）
-- `_conf_schema.json`：插件配置面板 schema（WebUI 表单由此生成）
-- `tests/test_logic.py`：离线逻辑测试（无需安装 AstrBot，运行 `python -X utf8 tests/test_logic.py`）
+- 修改 `main.py` 中的 `AnonRelayConfig` 默认值时，请同步更新 `_conf_schema.json` 的对应 `default`。
+- 运行 `python -X utf8 tests/test_logic.py` 进行离线回归测试。
