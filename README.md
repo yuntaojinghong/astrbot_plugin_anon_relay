@@ -17,13 +17,27 @@
 
 ## 安装
 
+**方式一：下载 zip 上传安装（推荐，最简单）**
+
+1. 下载安装包：https://github.com/yuntaojinghong/astrbot_plugin_anon_relay/releases/latest/download/astrbot_plugin_anon_relay.zip
+   （zip 文件名必须保持为 `astrbot_plugin_anon_relay.zip`，AstrBot 以 zip 文件名作为插件目录名）
+2. WebUI → 插件管理 → 安装插件 → 上传该 zip
+3. 在插件管理中**重载插件**
+4. 进入该插件的**配置面板**，填写「目标群号」，保存后再次重载插件生效
+
+**方式二：手动复制文件夹**
+
 1. 将 `astrbot_plugin_anon_relay` 整个文件夹复制到 AstrBot 的插件目录：
    - 桌面版：`C:\Users\<用户名>\.astrbot\data\plugins\`
-   - 源码/命令行版：`<AstrBot根目录>/data/plugins/`
+   - 服务器版（源码/systemd）：`<AstrBot根目录>/data/plugins/`
+   - Docker 版：容器内 `/AstrBot/data/plugins/`（或通过挂载卷放入宿主机对应目录）
 2. 在 WebUI「插件管理」中**重载插件**。
 3. 进入该插件的**配置面板**，填写「目标群号」，保存后再次重载插件生效。
 
-也可以把文件夹打成 zip，通过 WebUI「插件管理 -> 安装插件」上传安装。
+**方式三：从 GitHub 仓库安装**
+
+WebUI → 插件管理 → 安装插件 → 从 GitHub 仓库安装，填入
+`https://github.com/yuntaojinghong/astrbot_plugin_anon_relay`（要求服务器能访问 GitHub）。
 
 ## 配置面板
 
